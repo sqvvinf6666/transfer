@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarTransfer</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 16px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding: 8px 0;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #0088CC, #00A2D6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 18px;
+        }
+
+        .app-name {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* Balance Card */
+        .balance-card {
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .balance-label {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #999999);
+            margin-bottom: 8px;
+        }
+
+        .balance-amount {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .balance-subtitle {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #999999);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .action-btn {
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:active {
+            transform: scale(0.98);
+            background: var(--tg-theme-bg-color, #ffffff);
+        }
+
+        .action-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .action-text {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Transactions */
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--tg-theme-secondary-bg-color, #f0f0f0);
+        }
+
+        .transaction-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .transaction-details {
+            flex: 1;
+        }
+
+        .transaction-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .transaction-message {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #999999);
+        }
+
+        .transaction-amount {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .amount-positive {
+            color: #31B545;
+        }
+
+        .amount-negative {
+            color: #E64D3D;
+        }
+
+        /* Primary Button */
+        .primary-btn {
+            background: var(--tg-theme-button-color, #0088CC);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .primary-btn:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Back Button */
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: var(--tg-theme-button-color, #0088CC);
+            padding: 8px 0;
+            margin-bottom: 16px;
+        }
+
+        /* Users List */
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--tg-theme-secondary-bg-color, #f0f0f0);
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .user-balance {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #999999);
+        }
+
+        /* Transfer Form */
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #999999);
+            margin-bottom: 8px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 12px;
+            font-size: 16px;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--tg-theme-button-color, #0088CC);
+        }
+
+        .amount-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .amount-btn {
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .amount-btn.active {
+            background: var(--tg-theme-button-color, #0088CC);
+            color: var(--tg-theme-button-text-color, #ffffff);
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--tg-theme-bg-color, #ffffff);
+            border: 1px solid var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Screen -->
+    <div class="container">
+        <div id="mainScreen" class="screen active">
+            <div class="header">
+                <div class="logo">⭐</div>
+                <div class="app-name">StarTransfer</div>
+            </div>
+
+            <div class="balance-card">
+                <div class="balance-label">Ваш баланс</div>
+                <div class="balance-amount" id="userBalance">0 ⭐</div>
+                <div class="balance-subtitle">Зірки доступні для передачі</div>
+            </div>
+
+            <div class="quick-actions">
+                <button class="action-btn" onclick="showScreen('transferScreen')">
+                    <div class="action-icon">💸</div>
+                    <div class="action-text">Переказати</div>
+                </button>
+                <button class="action-btn" onclick="showScreen('historyScreen')">
+                    <div class="action-icon">📊</div>
+                    <div class="action-text">Історія</div>
+                </button>
+                <button class="action-btn" onclick="showScreen('receiveScreen')">
+                    <div class="action-icon">📥</div>
+                    <div class="action-text">Отримати</div>
+                </button>
+                <button class="action-btn" onclick="showNotification('Функція в розробці')">
+                    <div class="action-icon">👥</div>
+                    <div class="action-text">Контакти</div>
+                </button>
+            </div>
+
+            <div class="section-title">Останні транзакції</div>
+            <div id="recentTransactions">
+                <!-- Transactions will be loaded here -->
+            </div>
+
+            <button class="primary-btn" onclick="showScreen('transferScreen')">
+                Переказати зірки
+            </button>
+        </div>
+
+        <!-- Transfer Screen -->
+        <div id="transferScreen" class="screen">
+            <button class="back-btn" onclick="showScreen('mainScreen')">← Назад</button>
+            <div class="section-title">Переказ зірок</div>
+
+            <div class="input-group">
+                <label class="input-label">Отримувач</label>
+                <input type="text" class="input-field" id="recipientInput" placeholder="Ім'я або @username" readonly
+                       onclick="showScreen('usersScreen')">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Кількість зірок</label>
+                <input type="number" class="input-field" id="amountInput" placeholder="0" min="1" max="1000">
+            </div>
+
+            <div class="amount-buttons">
+                <button class="amount-btn" onclick="setAmount(10)">10</button>
+                <button class="amount-btn" onclick="setAmount(50)">50</button>
+                <button class="amount-btn" onclick="setAmount(100)">100</button>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Повідомлення (необов'язково)</label>
+                <input type="text" class="input-field" id="messageInput" placeholder="Ваше повідомлення...">
+            </div>
+
+            <button class="primary-btn" onclick="sendTransfer()">
+                Підтвердити переказ
+            </button>
+        </div>
+
+        <!-- Users Screen -->
+        <div id="usersScreen" class="screen">
+            <button class="back-btn" onclick="showScreen('transferScreen')">← Назад</button>
+            <div class="section-title">Оберіть отримувача</div>
+            <div id="usersList">
+                <!-- Users will be loaded here -->
+            </div>
+        </div>
+
+        <!-- History Screen -->
+        <div id="historyScreen" class="screen">
+            <button class="back-btn" onclick="showScreen('mainScreen')">← Назад</button>
+            <div class="section-title">Історія транзакцій</div>
+            <div id="allTransactions">
+                <!-- All transactions will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Receive Screen -->
+        <div id="receiveScreen" class="screen">
+            <button class="back-btn" onclick="showScreen('mainScreen')">← Назад</button>
+            <div class="section-title">Отримати зірки</div>
+            
+            <div class="balance-card">
+                <div class="balance-label">Ваша посилання для отримання</div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📩</div>
+                    <div style="font-size: 14px; color: var(--tg-theme-hint-color, #999999); margin-bottom: 20px;">
+                        Надішліть це посилання друзям для отримання зірок
+                    </div>
+                </div>
+                <button class="primary-btn" onclick="copyLink()">
+                    Скопіювати посилання
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Telegram Web App initialization
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+
+        // App State
+        let appState = {
+            balance: 500,
+            selectedUser: null,
+            selectedAmount: 0,
+            transactions: [
+                { id: 1, name: "Анна Коваленко", avatar: "👩", amount: 50, message: "За допомогу з проектом", type: "incoming", time: "2 хв тому" },
+                { id: 2, name: "Максим Петренко", avatar: "👨", amount: 25, message: "Кава", type: "outgoing", time: "1 год тому" },
+                { id: 3, name: "Софія Іваненко", avatar: "👩", amount: 100, message: "Дякую за підтримку!", type: "incoming", time: "3 год тому" }
+            ],
+            users: [
+                { id: 1, name: "Анна Коваленко", avatar: "👩", balance: 250 },
+                { id: 2, name: "Максим Петренко", avatar: "👨", balance: 180 },
+                { id: 3, name: "Софія Іваненко", avatar: "👩", balance: 320 },
+                { id: 4, name: "Олександр Бондаренко", avatar: "👨", balance: 190 },
+                { id: 5, name: "Марія Шевченко", avatar: "👩", balance: 275 }
+            ]
+        };
+
+        // Initialize App
+        function initApp() {
+            updateBalance();
+            renderRecentTransactions();
+            renderUsersList();
+            renderAllTransactions();
+            
+            // Set user name if available
+            const user = tg.initDataUnsafe.user;
+            if (user) {
+                document.querySelector('.app-name').textContent = `Привіт, ${user.first_name}!`;
+            }
+        }
+
+        // Screen Management
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Update Balance
+        function updateBalance() {
+            document.getElementById('userBalance').textContent = `${appState.balance} ⭐`;
+        }
+
+        // Render Transactions
+        function renderRecentTransactions() {
+            const container = document.getElementById('recentTransactions');
+            const recentTransactions = appState.transactions.slice(0, 5);
+            
+            container.innerHTML = recentTransactions.map(transaction => `
+                <div class="transaction-item">
+                    <div class="transaction-avatar">${transaction.avatar}</div>
+                    <div class="transaction-details">
+                        <div class="transaction-name">${transaction.name}</div>
+                        <div class="transaction-message">${transaction.message}</div>
+                    </div>
+                    <div class="transaction-amount ${transaction.type === 'incoming' ? 'amount-positive' : 'amount-negative'}">
+                        ${transaction.type === 'incoming' ? '+' : '-'}${transaction.amount}⭐
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAllTransactions() {
+            const container = document.getElementById('allTransactions');
+            container.innerHTML = appState.transactions.map(transaction => `
+                <div class="transaction-item">
+                    <div class="transaction-avatar">${transaction.avatar}</div>
+                    <div class="transaction-details">
+                        <div class="transaction-name">${transaction.name}</div>
+                        <div class="transaction-message">${transaction.message} • ${transaction.time}</div>
+                    </div>
+                    <div class="transaction-amount ${transaction.type === 'incoming' ? 'amount-positive' : 'amount-negative'}">
+                        ${transaction.type === 'incoming' ? '+' : '-'}${transaction.amount}⭐
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render Users List
+        function renderUsersList() {
+            const container = document.getElementById('usersList');
+            container.innerHTML = appState.users.map(user => `
+                <div class="user-item" onclick="selectUser(${user.id})">
+                    <div class="user-avatar">${user.avatar}</div>
+                    <div class="user-info">
+                        <div class="user-name">${user.name}</div>
+                        <div class="user-balance">${user.balance} ⭐</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Select User
+        function selectUser(userId) {
+            const user = appState.users.find(u => u.id === userId);
+            appState.selectedUser = user;
+            document.getElementById('recipientInput').value = user.name;
+            showScreen('transferScreen');
+        }
+
+        // Set Amount
+        function setAmount(amount) {
+            appState.selectedAmount = amount;
+            document.getElementById('amountInput').value = amount;
+            
+            // Update active state of amount buttons
+            document.querySelectorAll('.amount-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // Send Transfer
+        function sendTransfer() {
+            const amount = parseInt(document.getElementById('amountInput').value);
+            const message = document.getElementById('messageInput').value || 'Без повідомлення';
+            
+            if (!appState.selectedUser) {
+                showNotification('Оберіть отримувача');
+                return;
+            }
+            
+            if (!amount || amount < 1) {
+                showNotification('Введіть коректну кількість зірок');
+                return;
+            }
+            
+            if (amount > appState.balance) {
+                showNotification('Недостатньо зірок на балансі');
+                return;
+            }
+            
+            // Simulate transfer
+            appState.balance -= amount;
+            
+            // Add to transactions
+            const newTransaction = {
+                id: Date.now(),
+                name: appState.selectedUser.name,
+                avatar: appState.selectedUser.avatar,
+                amount: amount,
+                message: message,
+                type: 'outgoing',
+                time: 'щойно'
+            };
+            
+            appState.transactions.unshift(newTransaction);
+            
+            // Update UI
+            updateBalance();
+            renderRecentTransactions();
+            renderAllTransactions();
+            
+            // Show success notification
+            showNotification(`Успішно переказано ${amount}⭐ ${appState.selectedUser.name}`);
+            
+            // Send notification to recipient (simulated)
+            setTimeout(() => {
+                const incomingTransaction = {
+                    id: Date.now() + 1,
+                    name: "Ви",
+                    avatar: "👤",
+                    amount: amount,
+                    message: message,
+                    type: 'incoming',
+                    time: 'щойно'
+                };
+                appState.transactions.unshift(incomingTransaction);
+                renderRecentTransactions();
+                renderAllTransactions();
+            }, 2000);
+            
+            // Reset form
+            appState.selectedUser = null;
+            appState.selectedAmount = 0;
+            document.getElementById('recipientInput').value = '';
+            document.getElementById('amountInput').value = '';
+            document.getElementById('messageInput').value = '';
+            
+            // Return to main screen
+            setTimeout(() => showScreen('mainScreen'), 1500);
+        }
+
+        // Copy Link
+        function copyLink() {
+            const link = `https://t.me/${tg.initDataUnsafe.user?.username || 'your_bot'}?start=stars`;
+            navigator.clipboard.writeText(link).then(() => {
+                showNotification('Посилання скопійовано!');
+            });
+        }
+
+        // Notification System
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize app when loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
